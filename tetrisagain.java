@@ -10,7 +10,7 @@ public class tetrisagain extends JFrame {
     private int size;
     private int rows;
 
-    private final int[][] tetrimino = {
+    private int[][] tetrimino = {
         {0,1},{0,1},{1,1},
     
     

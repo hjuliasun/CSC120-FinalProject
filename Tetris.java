@@ -8,7 +8,7 @@ public class tetris extends JPanel{
     private int rows;
 
     private final int[][] tetrimino = {
-        {0,1},{0,1},{1,1},
+        {0,1},{0,1},{1,1}
     
     
     };
