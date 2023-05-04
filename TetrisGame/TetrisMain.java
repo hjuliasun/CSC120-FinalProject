@@ -1,11 +1,11 @@
-package TetrisGame;
+// package TetrisGame;
 
-public class TetrisMain{
+// public class TetrisMain{
 
 
-    public static void main(String[] args) {
+//     public static void main(String[] args) {
         
-    }
+//     }
 
 
-}
+// }
