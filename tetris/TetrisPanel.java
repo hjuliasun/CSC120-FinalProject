@@ -3,6 +3,15 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import javax.swing.Timer;
+
+import tetris.tetrominos.IPiece;
+import tetris.tetrominos.JPiece;
+import tetris.tetrominos.LPiece;
+import tetris.tetrominos.OPiece;
+import tetris.tetrominos.SPiece;
+import tetris.tetrominos.TPiece;
+import tetris.tetrominos.ZPiece;
+
 import javax.swing.KeyStroke;
 import java.awt.event.KeyListener;
 import java.awt.event.KeyEvent;
@@ -37,6 +46,9 @@ public class TetrisPanel extends JPanel implements ActionListener {
     private TetrisBlock block;
     private TetrisPanel game;
     private Color[][] background;
+    private TetrisBlock[] pieces;
+    private Color[] tetrisColors = {Color.red, Color.blue, Color.magenta, Color.green, Color.CYAN, Color.yellow, Color.orange};
+
 
     // private final Color[] blockColors = { Color.BLACK, Color.BLUE, Color.CYAN, Color.GREEN,
     //     Color.MAGENTA, Color.ORANGE, Color.RED, Color.YELLOW };
@@ -101,6 +113,12 @@ public class TetrisPanel extends JPanel implements ActionListener {
 //         }
 // };
 
+    /**
+     *TetrisPanel constructor with sizing/other apperance variables
+     *stores background and piece information
+     *creates a new piece every time called
+     */
+
     TetrisPanel(){
         random = new Random();
         // this.game = new TetrisThread(game);
@@ -111,8 +129,10 @@ public class TetrisPanel extends JPanel implements ActionListener {
         // initTimer();
         // initShapes();
         background = new Color[PANEL_HEIGHT][PANEL_WIDTH];
+        pieces = new TetrisBlock[]{new ZPiece(), new TPiece(), new SPiece(), new OPiece(), new LPiece(), new JPiece(), new IPiece()};
 
         makeBlock();
+        deleteLines();
 
         // movePieceDown();
         // startGame();
@@ -120,9 +140,16 @@ public class TetrisPanel extends JPanel implements ActionListener {
 
     }
 
+    /**
+     * makeBlock method creates new piece that is called from tetriminos
+     * can change what type of block but can't do multiple blocks
+     */
     public void makeBlock(){
-        block = new TetrisBlock(new int[][] {{TETRIS_UNIT,0},{TETRIS_UNIT,0}, {TETRIS_UNIT,TETRIS_UNIT}}, Color.BLUE);
-        // block.spawn(PANEL_WIDTH);
+        // block = pieces[new Random().nextInt(pieces.length)];
+        block = new  OPiece();
+        // block.initPiece();
+        // repaint();
+
     }
 
     // 	// Put a new, random piece into the dropping position
@@ -188,11 +215,11 @@ public class TetrisPanel extends JPanel implements ActionListener {
 	// 	return false;
 	// }
 
-    public void newTetrisPiece(){
-        // originX = (PANEL_WIDTH/TETRIS_UNIT)*TETRIS_UNIT;
-        // originY = (PANEL_HEIGHT/TETRIS_UNIT)*TETRIS_UNIT;
+    // public void newTetrisPiece(){
+    //     // originX = (PANEL_WIDTH/TETRIS_UNIT)*TETRIS_UNIT;
+    //     // originY = (PANEL_HEIGHT/TETRIS_UNIT)*TETRIS_UNIT;
 
-    }
+    // }
 
     // 	// Collision test for the dropping piece
 	// private boolean collidesAt(int x, int y, int rotation) {
@@ -215,6 +242,81 @@ public class TetrisPanel extends JPanel implements ActionListener {
 	// 	}
 	// 	repaint();
 	// }
+
+    /**
+     * blockinPanel checks for game over status
+     * @return boolean value of whether block exceeds the panel dimensions
+     */
+
+    public boolean blockinPanel(){
+        if(block.getBlockLocation()<0){
+            block = null;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * deleteLines method ~supposedly reads the dimensions of the block and compares to the fill of the background
+     * if background is not null, it clears the line 
+     * uses clearLIne, shiftDown and clearLine methods to update the panel
+     */
+
+    public void deleteLines(){
+
+        boolean completeLine;
+        for(int row = height_ratio -1; row >= 0; row--){
+            completeLine = true;
+            for(int col = 0; col < width_ratio; col++){
+                if(background[row][col] == null){
+                    completeLine = false;
+
+                    break;
+                }
+            }
+            if (completeLine){
+
+                clearLine(row);
+                shiftDown(row);
+                clearLine(0);
+
+                row++;
+
+                repaint();
+            }
+
+        }
+    }
+
+    /**
+     * clearLine assists deleteLines in making the background black when line filled
+     * @param row
+     */
+
+    public void clearLine(int row){
+        for(int i = 0; i <width_ratio; i++){
+            background[row][i] = Color.black;
+        }
+    }
+
+    /**
+     * shiftDown methods moves the colored blocks down once row is cleared
+     * @param row
+     */
+
+    public void shiftDown(int row){
+        for(int ro = row; ro > 0; ro--){
+            for(int co = 0; co < width_ratio; co++){
+                background[ro][co]= background[ro-1][co];
+            }
+        }
+
+    }
+
+    /**
+     * checkTetrisPiece method maintains piece within bounds
+     * @return boolean to check if block has collided with panel edges
+     */
     
     public boolean checkTetrisPiece(){
         // System.out.println(block.getBlockLocation());
@@ -224,8 +326,112 @@ public class TetrisPanel extends JPanel implements ActionListener {
             // System.out.println(block.getBlockLocation());
             return false;
         }
+
+        int[][] s = block.getBlock();
+        int w = block.getWidth();
+        int h = block.getHeight();
+
+        for(int col = 0; col<w;col++){
+            for(int row = h - 1; row >=0; row--){
+                if (s[row][col] != 0){
+                    int x = col + block.getX();
+                    int y = row + block.getY() + 1;
+                    if (y<0){
+                        break;
+                    }
+                    if(background[y][x] != null){
+                        return false;
+
+                    }
+                    break;
+
+
+                }
+            }
+        }
         return true;
     }
+
+    /**
+     * method to keep block in bounds
+     * @return boolean value to keep block from exceeding left boundary
+     */
+
+    private boolean checkLeftSide(){
+
+        if(block.getBlockLeftLocation() == 0){
+            return false;
+        }
+
+        int[][] s = block.getBlock();
+        int w = block.getWidth();
+        int h = block.getHeight();
+
+        for(int row = 0; row<h;row++){
+            for(int col = 0; col <w; col++){
+                if (s[row][col] != 0){
+                    int x = col + block.getX()-1;
+                    int y = row + block.getY();
+                    if (y<0){
+                        break;
+                    }
+                    if(background[y][x] != null){
+                        return false;
+
+                    }
+                    break;
+
+
+                }
+            }
+        }
+        return true;
+
+    }
+
+    /**
+     * method to keep block in bounds
+     * @return boolean value to keep block from exceeding right boundary
+     */
+
+    private boolean checkRightSide(){
+
+
+        if(block.getBlockRightLocation() == width_ratio){
+            return false;
+        }
+
+        int[][] s = block.getBlock();
+        int w = block.getWidth();
+        int h = block.getHeight();
+
+        for(int row = 0; row<h;row++){
+            for(int col = w-1; col >=0; col--){
+                if (s[row][col] != 0){
+                    int x = col + block.getX()+1;
+                    int y = row + block.getY();
+                    if (y<0){
+                        break;
+                    }
+                    if(background[y][x] != null){
+                        return false;
+
+                    }
+                    break;
+
+
+                }
+            }
+        }
+
+        return true;
+
+    }
+
+    /**
+     * method to draw block every time the piece moves down
+     * @return boolean value if piece has reached bottom --> draws piece into background
+     */
 
     public boolean movePieceDown(){
         // makeBlock();
@@ -235,6 +441,8 @@ public class TetrisPanel extends JPanel implements ActionListener {
 
         if (checkTetrisPiece() == false){
             drawBlockBackground();
+            deleteLines();
+
             return false;
         }
         else{
@@ -247,37 +455,68 @@ public class TetrisPanel extends JPanel implements ActionListener {
 
     }
 
+    /**
+     * calls moveLeft method from TetrisBlock class to shift x value of block
+     */
+
     public void movePieceLeft(){
+        if(block ==null){
+            return;
+        }
+
+        if(checkLeftSide() == false){
+            return;
+        }
         block.moveLeft();
         repaint();
 
     }
 
 
+
+    /**
+     * calls moveRight method from TetrisBlock class to shift x value of block to the right
+     */
     public void movePieceRight(){
+        if(block ==null){
+            return;
+        }
+        if(checkRightSide() == false){
+            return;
+        }
         block.moveRight();
         repaint();
     }
 
+    /**
+     * calls moveDown method from TetrisBlock class to drop block to bottom of the panel
+     */    
+
     public void dropBlock(){
+        if(block ==null){
+            return;
+        }
         while(checkTetrisPiece()){
             block.moveDown();
         }
         repaint();
     }
-
+    
+    /**
+     * method doesn't work but tries to call rotate method in TetrisBlock
+     */
     public void rotateBlock(){
+        if(block ==null){
+            return;
+        }
         block.rotate();
         repaint();
     }
 
-
-
-
-
-
-
-
+    
+    /**paintComponent is an overridden inherited method that draws everything
+     * @param g Graphics 
+     */
 
     @Override
     public void paintComponent(Graphics g){
@@ -285,7 +524,13 @@ public class TetrisPanel extends JPanel implements ActionListener {
         drawBackground(g);
         // drawCircle(g);
         drawBlock(g);
+        // drawGameOver(g);
     }
+
+    /**
+     * drawBlock reads through coordinates of block and colors each unit 
+     * @param g
+     */
 
     public void drawBlock(Graphics g){
         // makeBlock();
@@ -336,7 +581,10 @@ public class TetrisPanel extends JPanel implements ActionListener {
     //     g.fillOval(25, 25, TETRIS_UNIT, TETRIS_UNIT);
     // }
 
-
+/**
+ * drawBackground illustrates tetris piece within the grid system
+ * @param g
+ */
     public void drawBackground(Graphics g){
         Color color;
 
@@ -383,6 +631,14 @@ public class TetrisPanel extends JPanel implements ActionListener {
 
     }
 
+    /**
+     * drawGrid illustrates grid system background
+     * @param g
+     * @param color
+     * @param x
+     * @param y
+     */
+
     private void drawGrid(Graphics g, Color color, int x, int y){
         g.setColor(color);
         g.fillRect(x, y, TETRIS_UNIT, TETRIS_UNIT);
@@ -391,7 +647,11 @@ public class TetrisPanel extends JPanel implements ActionListener {
 
     }
 
-    private void drawBlockBackground(){
+    /**
+     * drawBlockBackground establishes block as part of the background once fixed
+     */
+
+    public void drawBlockBackground(){
         int[][] piece = block.getBlock();
         int height = block.getHeight();
         int width = block.getWidth();
@@ -409,13 +669,17 @@ public class TetrisPanel extends JPanel implements ActionListener {
         }
     }
 
-    public void movePieces(){
 
-    }
 
-    public void gameOver(Graphics g){
+    // public void drawGameOver(Graphics g){
 
-    }
+    //     g.setColor(Color.red);
+    //     g.setFont(new Font("Ink Free", Font.BOLD, 75));
+    //     FontMetrics font = getFontMetrics(g.getFont());
+    //     g.drawString("GAME OVER", 25, 100);
+
+
+    // }
 
     // @Override
     // public void actionPerformed(ActionEvent e) {
@@ -442,6 +706,10 @@ public class TetrisPanel extends JPanel implements ActionListener {
 
         }
     }
+
+    /**
+     * inherited method from ActionListener that assists in the controls
+     */
 
     @Override
     public void actionPerformed(ActionEvent e) {

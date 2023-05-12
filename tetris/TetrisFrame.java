@@ -4,11 +4,16 @@ import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
-public class TetrisFrame extends JFrame {
+public class TetrisFrame extends JFrame { //main frame of tetris game
+
+    /** Tetris Frame that extends the JFrame interface. Creates new game through TetrisPanel
+     * @return pop-up window with game
+     * 
+     */
 
     TetrisFrame(){
         //this.setDefaultLookAndFeelDecorated(true);
-        TetrisPanel game = new TetrisPanel();
+        TetrisPanel game = new TetrisPanel(); //create a new panel in the frame
         this.add(game);
         this.setTitle("Tetris");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -16,7 +21,9 @@ public class TetrisFrame extends JFrame {
         this.pack();
         this.setVisible(true);
         this.setLocationRelativeTo(null);
-        new TetrisThread(game).start();
+        new TetrisThread(game).start(); // starts animation of the pieces moving down
+
+        //keyboard controls using KeyListener 
         game.addKeyListener(new KeyListener() {
             public void keyTyped(KeyEvent e) {
             }
